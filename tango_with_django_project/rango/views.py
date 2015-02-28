@@ -139,7 +139,7 @@ def add_page(request, category_name_slug):
     context_dict = {'form':form, 'category': cat, 'category_name_slug': category_name_slug}
 
     return render(request, 'rango/add_page.html', context_dict)
-
+"""
 def register(request):
     # A boolean value for telling the template whether the registration was successful.
     # Set to False initially. Code changes value to True when registration succeeds.
@@ -235,14 +235,16 @@ def user_login(request):
         return render(request, 'rango/login.html', {})
 
 @login_required
-def restricted(request):
-    return render(request, 'rango/restricted.html', {})
-
-# Use the login_required() decorator to ensure only those logged in can access the view.
-@login_required
 def user_logout(request):
     # Since we know the user is logged in, we can now just log them out.
     logout(request)
 
     # Take the user back to the homepage.
     return HttpResponseRedirect('/rango/')
+"""
+
+@login_required
+def restricted(request):
+    return render(request, 'rango/restricted.html', {})
+
+# Use the login_required() decorator to ensure only those logged in can access the view.
