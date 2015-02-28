@@ -5,7 +5,10 @@
 {% block title %}About{% endblock %}
 
 {% block body_block %}
+    <div class="page-header">
         <h1>Rango says...</h1>
+    </div>
+    <div>
         this is the about page. <strong>{{ boldmessage }}</strong><br />
         <img src="{% static "images/myself.jpg" %}" alt="Picture of Me" width = 200 height = 300 />
 	<p> You have viewed my site {{ visits }} 
@@ -13,4 +16,5 @@
         {% else %} time.
         {% endif %}
         </p>
+    </div>
 {% endblock %}
