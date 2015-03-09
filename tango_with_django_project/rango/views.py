@@ -10,6 +10,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from datetime import datetime
 from rango.bing_search import run_query
+from django.shortcuts import redirect
+from django.contrib.auth.models import User
+from rango.models import UserProfile
 
 def index(request):
     # Query the database for a list of ALL categories currently stored.
@@ -66,17 +69,33 @@ def category(request, category_name_slug):
     # Create a context dictionary which we can pass to the template rendering engine.
     context_dict = {}
 
+    context_dict['result_list'] = None
+    context_dict['query'] = None
+    if request.method == 'POST':
+        query = request.POST['query'].strip()
+
+        if query:
+            # Run our Bing function to get the results list!
+            result_list = run_query(query)
+
+            context_dict['result_list'] = result_list
+            context_dict['query'] = query
+
     try:
         # Can we find a category name slug with the given name?
         # If we can't, the .get() method raises a DoesNotExist exception.
         # So the .get() method returns one model instance or raises an exception.
         category = Category.objects.get(slug=category_name_slug)
+        # Update the counter for how many times a category has been viewed
+        category.views = category.views + 1
+        category.save()
         context_dict['category_name'] = category.name
         context_dict['category_name_slug'] = category_name_slug
+        context_dict['category_views'] = category.views
 
         # Retrieve all of the associated pages.
         # Note that filter returns >= 1 model instance.
-        pages = Page.objects.filter(category=category)
+        pages = Page.objects.filter(category=category).order_by('-views')
 
         # Adds our results list to the template context under name pages.
         context_dict['pages'] = pages
@@ -88,6 +107,9 @@ def category(request, category_name_slug):
         # Don't do anything - the template displays the "no category" message for us.
         pass
 
+    if not context_dict['query']:
+        context_dict['query'] = category.name
+        
     # Go render the response and return it to the client.
     return render(request, 'rango/category.html', context_dict)
 
@@ -262,3 +284,119 @@ def search(request):
             result_list = run_query(query)
 
     return render(request, 'rango/search.html', {'result_list': result_list})
+
+def track_url(request):
+    page_id = None
+    url = '/rango/'
+    if request.method == "GET":
+        if "page_id" in request.GET:
+            page_id = request.GET["page_id"]
+            try:
+                page = Page.objects.get(id=page_id)
+                page.views = page.views + 1
+                page.save()
+                url = page.url
+            except:
+                pass
+
+    return redirect(url)
+
+@login_required
+def like_category(request):
+    category_id = None
+    likes = 0
+    if request.method == "GET":
+        if "category_id" in request.GET:
+            category_id = request.GET["category_id"]
+            category = Category.objects.get(id=category_id)
+            category.likes = category.likes + 1
+            category.save()
+            likes = category.likes
+        
+    return HttpResponse(likes)
+
+def get_category_list(max_results=0, starts_with=''):
+    cat_list = []
+
+    cat_list = Category.objects.filter(name__istartswith=starts_with)
+
+    if max_results > 0:
+        if len(cat_list) > max_results:
+            cat_list = cat_list[:max_results]
+
+    return cat_list
+
+def suggest_category(request):
+
+    cat_list = []
+    starts_with = ''
+    if request.method == 'GET':
+        starts_with = request.GET['suggestion']
+
+    cat_list = get_category_list(8, starts_with)
+
+    return render(request, 'rango/cats.html', {'cats': cat_list })
+
+@login_required
+def register_profile(request):
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST)
+        if form.is_valid():
+            profile = form.save(commit=False)
+            profile.user = request.user
+            if "picture" in request.POST:
+                profile.picture = request.POST["picture"]
+            profile.save()
+            return index(request)
+        else:
+            print form.errors
+    else:
+        form = UserProfileForm()
+
+    return render(request, 'registration/profile_registration.html', {'form': form})
+        
+@login_required
+def profile(request):
+    current_user = User.objects.get(username = request.user.get_username())
+    context_dict={}
+    context_dict["username"]=current_user.get_username()
+    context_dict["email"]=current_user.email
+    try:
+        profile = UserProfile.objects.get(user = current_user)
+        context_dict["website"]=profile.website
+        context_dict["picture"]=profile.picture
+    except UserProfile.DoesNotExist:
+        pass
+
+    return render(request, 'rango/profile.html', context_dict)
+
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        current_user = User.objects.get(username = request.user.get_username())
+        try:
+            profile = UserProfile.objects.get(user = current_user)
+        except UserProfile.DoesNotExist:
+            profile = UserProfile()
+            profile.user = current_user
+        if "email" in request.POST:
+            if request.POST["email"] != "":
+                current_user.email = request.POST["email"]
+        if "website" in request.POST:
+            if request.POST["website"] != "":
+                profile.website = request.POST["website"]
+        if "picture" in request.POST:
+            if request.POST["picture"] != "":
+                profile.picture = request.POST["picture"] 
+        profile.save()
+        current_user.save()
+        return redirect('/rango/profile/')
+            
+    return render(request, 'rango/edit_profile.html', {})
+
+def list_users(request):
+    context_dict = {}
+    users = User.objects.order_by('-username')
+    context_dict["users"] = users
+
+    return render(request, 'rango/list_users.html', context_dict)

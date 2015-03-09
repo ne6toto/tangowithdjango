@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+
+{% block title %}About{% endblock %}
+
+{% block body_block %}
+    <div class="page-header">
+        <h1>Registered Users</h1>
+    </div>
+    <div class="col-xs-12 col-sm-6 placeholder">
+            <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">Users</h3>
+            </div>
+            </div>
+
+        {% if users %}
+            <ul class="list-group">
+                {% for user in users %}
+                <li class="list-group-item">{{ user.username }}</a></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <strong>There are no users currently registered.</strong>
+        {% endif %}
+
+        </div>
+{% endblock %}
