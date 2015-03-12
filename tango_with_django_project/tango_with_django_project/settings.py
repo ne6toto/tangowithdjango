@@ -30,11 +30,11 @@ LOGIN_URL = '/accounts/login/'
 SECRET_KEY = '*&3eu18385-d7&2)f^zgmes+#1eof-6qvyg!gvx)&gsgfav94e'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['2064491v.pythonanywhere.com']
 
 
 # Application definition

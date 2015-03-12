@@ -109,7 +109,7 @@ def category(request, category_name_slug):
 
     if not context_dict['query']:
         context_dict['query'] = category.name
-        
+
     # Go render the response and return it to the client.
     return render(request, 'rango/category.html', context_dict)
 
@@ -312,7 +312,7 @@ def like_category(request):
             category.likes = category.likes + 1
             category.save()
             likes = category.likes
-        
+
     return HttpResponse(likes)
 
 def get_category_list(max_results=0, starts_with=''):
@@ -354,7 +354,7 @@ def register_profile(request):
         form = UserProfileForm()
 
     return render(request, 'registration/profile_registration.html', {'form': form})
-        
+
 @login_required
 def profile(request):
     current_user = User.objects.get(username = request.user.get_username())
@@ -387,11 +387,11 @@ def edit_profile(request):
                 profile.website = request.POST["website"]
         if "picture" in request.POST:
             if request.POST["picture"] != "":
-                profile.picture = request.POST["picture"] 
+                profile.picture = request.POST["picture"]
         profile.save()
         current_user.save()
         return redirect('/rango/profile/')
-            
+
     return render(request, 'rango/edit_profile.html', {})
 
 def list_users(request):
@@ -400,3 +400,6 @@ def list_users(request):
     context_dict["users"] = users
 
     return render(request, 'rango/list_users.html', context_dict)
+
+def error(request):
+    return render(request, 'rango/error_page.hrml', {})
