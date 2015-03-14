@@ -402,4 +402,4 @@ def list_users(request):
     return render(request, 'rango/list_users.html', context_dict)
 
 def error(request):
-    return render(request, 'rango/error_page.hrml', {})
+    return render(request, 'rango/error_page.html', {})
